@@ -1,3 +1,5 @@
+'use client'
+
 import Image from "next/image";
 import {
   Container,
@@ -31,6 +33,41 @@ const handleSubmit = async () => {
 }
 
 export default function Home() {
+
+  const handleSubmit = async () => {
+    const checkoutSession = await fetch ('/api/checkout_session', {
+      method: "POST",
+      // change when deployed
+      headers: {
+        origin: 'http://localhost:3000',
+      },
+    })
+
+    // gets the json file
+    const checkoutSessionJson = await checkoutSession.json()
+
+    // how to handle the errors
+    if (checkoutSession.statusCode === 500){
+      console.error(checkoutSession.message)
+      return
+    }
+
+    const stripe = await getStripe()
+    const {error} = await stripe.redirectToCheckout({
+      sessionId: checkoutSessionJson.id,
+    })
+
+    if(error){
+      console.warn(error.message)
+    }
+
+
+
+
+
+  }
+
+
   return (
     <Container
       maxWidth = "lg"
@@ -150,6 +187,7 @@ export default function Home() {
                   variant="contained"
                   color="primary"
                   sx = {{mt: 2}}
+                  onClick={handleSubmit}
                 >
                   Choose Pro
                 </Button>

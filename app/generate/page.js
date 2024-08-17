@@ -3,6 +3,7 @@
 import {useUser} from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import db from '@/firebase'
 import {
     Container,
     TextField,
@@ -14,7 +15,14 @@ import {
     Card,
     CardActionArea,
     CardContent,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
   } from '@mui/material'
+
+import { doc, collection, setDoc, getDoc, writeBatch } from 'firebase/firestore'
 
 export default function Generate() {
     const {isLoaded, isSignedIn, user} = useUser()
@@ -42,7 +50,7 @@ export default function Generate() {
     }
 
     const handleOpen = () => {
-        setopenI(true)
+        setopen(true)
     }
 
     const handleClose = () => {
@@ -146,7 +154,7 @@ export default function Generate() {
                             >
                                 <CardActionArea
                                     onClick={() => {
-                                        handleCardClock(index)
+                                        handleCardClick(id)
                                     }}
                                 >
                                     <CardContent>
@@ -155,6 +163,19 @@ export default function Generate() {
                                             sx = {{
                                                 perspective: '1000px',
                                                     '& > div': {
+                                                        position: 'absolute',
+                                                        width: '100%',
+                                                        height: '100px',
+                                                        backfaceVisibility: "hidden",
+                                                        display: 'flex',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center',
+                                                        padding: 2,
+                                                        boxSizing: 'border-box',
+
+                                                    },
+
+                                                    '& > div > div': {
                                                         transition: 'transform 0.6s',
                                                         transformStyle: 'preseve-3d',
                                                         position: 'relative',
@@ -166,28 +187,9 @@ export default function Generate() {
                                                             : 'rotateY(0deg)',
                                                     },
 
-                                                    '& > div': {
-                                                        transition: 'transform 0.6s',
-                                                        transformStyle: 'preseve-3d',
-                                                        position: 'relative',
-                                                        width: '100%',
-                                                        height: '200px',
-                                                        boxShadow: '0 4px 8px 0 rgba(0,0,0 0.2)',
-                                                        transform: flipped(index)
-                                                            ? 'rotateY(180deg)' 
-                                                            : 'rotateY(0deg)',
-                                                    },
+                                                    '& > div > div: nth-of-type(2)': {
+                                                        transform: 'rotateY(180deg)',
 
-                                                    '& > div': {
-                                                        transition: 'transform 0.6s',
-                                                        transformStyle: 'preseve-3d',
-                                                        position: 'relative',
-                                                        width: '100%',
-                                                        height: '200px',
-                                                        boxShadow: '0 4px 8px 0 rgba(0,0,0 0.2)',
-                                                        transform: flipped(index)
-                                                            ? 'rotateY(180deg)' 
-                                                            : 'rotateY(0deg)',
                                                     },
 
                                             }}
@@ -216,8 +218,54 @@ export default function Generate() {
                             </Grid>
                         ))}
                     </Grid>
+                    <Box
+                        sx = {{
+                            mt: 4,
+                            display: 'flex',
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <Button
+                            variant='contained'
+                            color = 'secondary'
+                            onClick = {handleOpen}
+                        >
+                            Save
+                        </Button>
+                    </Box>
                 </Box>
             )}
+
+
+            <Dialog
+                open = {open}
+                onClose = {handleClose}
+            >
+                <DialogTitle>
+                    Save Flashcards
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        Please enter a name for your flashcards collection
+                    </DialogContentText>
+                    <TextField
+                        autoFocus
+                        margin = 'dense'
+                        label = 'Collection Name'
+                        type = 'text'
+                        fullWidth 
+                        value = {name}
+                        onChange = {(e) => setName(e.target.value)}
+                        variant = 'outlined'
+                    >
+
+                    </TextField>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick = {handleClose}>Cancel</Button> 
+                    <Button onclick = {saveFlashcards}>Save</Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     )
 
